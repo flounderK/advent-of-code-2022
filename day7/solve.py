@@ -84,21 +84,29 @@ class PseudoFS:
     def __repr__(self):
         return f"PseudoFS:{self._current}$ "
 
+    @staticmethod
+    def from_input(inp_raw):
+        """
+        Create a PseudoFS from a list of executed commands
+        and their output
+        """
+        pfs = PseudoFS()
+        commands_and_output = [i.strip("\n") for i in
+                               inp_raw.split("$ ") if i != '']
+        for command in commands_and_output:
+            if command.startswith("ls"):
+                splitcommand = command.splitlines()
+                pfs.add_ls(splitcommand[1:])
+            elif command.startswith("cd"):
+                _, rel_dir = command.split(" ")
+                pfs.cd_rel(rel_dir)
+        return pfs
+
 
 with open("input.txt", "r") as f:
     inp_raw = f.read()
 
-commands_and_output = [i.strip("\n") for i in inp_raw.split("$ ") if i != '']
-
-pfs = PseudoFS()
-
-for command in commands_and_output:
-    if command.startswith("ls"):
-        splitcommand = command.splitlines()
-        pfs.add_ls(splitcommand[1:])
-    elif command.startswith("cd"):
-        _, rel_dir = command.split(" ")
-        pfs.cd_rel(rel_dir)
+pfs = PseudoFS.from_input(inp_raw)
 
 p1_total = 0
 
