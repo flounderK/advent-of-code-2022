@@ -15,6 +15,33 @@ class Tree:
         self.east = None
         self.south = None
         self.west = None
+        self._sceinic_score = None
+        self.scenic_score_values = {}
+
+    @property
+    def scenic_score(self):
+        if self._sceinic_score is not None:
+            return self._sceinic_score
+
+        scenic_value = 1
+        for tree_dir in ["north", "east", "south", "west"]:
+            last_tree = self
+            visible_trees = 0
+            tree = getattr(last_tree, tree_dir)
+            while tree is not None:
+                visible_trees += 1
+                # tree is still visible, even if it stops more from
+                # being visible
+                if tree.height >= self.height:
+                    break
+                last_tree = tree
+                tree = getattr(last_tree, tree_dir)
+
+            scenic_value = scenic_value * visible_trees
+            self.scenic_score_values[tree_dir] = visible_trees
+
+        self._sceinic_score = scenic_value
+        return scenic_value
 
     def __repr__(self):
         return f"{self.height}"
@@ -53,8 +80,9 @@ def check_rows(grid):
     for c in range(gridlen):
         lastheight = 0
         lastmaxheight = 0
+        # left to right
         for r in range(grid_rowlen):
-            height = grid[c][r]
+            height = grid[c][r].height
 
             if lastmaxheight < lastheight:
                 lastmaxheight = lastheight
@@ -73,7 +101,7 @@ def check_rows(grid):
         lastheight = 0
         lastmaxheight = 0
         for r in range(grid_rowlen-1, -1, -1):
-            height = grid[c][r]
+            height = grid[c][r].height
 
             if lastmaxheight < lastheight:
                 lastmaxheight = lastheight
@@ -127,8 +155,24 @@ def print_grid(grid):
 
 
 grid = load_grid("input.txt")
-# tree_grid = build_tree_grid(grid)
-print(f"part 1: {len(check_rows_and_cols(grid))}")
+treegrid = build_tree_grid(grid)
+visible_locations = check_rows_and_cols(treegrid)
+print(f"part 1: {len(visible_locations)}")
+
+best_scenic_score_tree = None
+for c in range(len(treegrid)):
+    for r in range(len(treegrid[0])):
+        # if (r, c) in visible_locations:
+        #     continue
+        tree = treegrid[c][r]
+        if best_scenic_score_tree is None:
+            best_scenic_score_tree = tree
+            continue
+        scenic_score = tree.scenic_score
+        if scenic_score > best_scenic_score_tree.scenic_score:
+            best_scenic_score_tree = tree
+
+print(f"part 2: {best_scenic_score_tree.scenic_score}")
 
 
 
