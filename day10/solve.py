@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 
 
-class ClockCPU:
-    def __init__(self):
-        self.x = 0
-        self.queue = []
-
+def batch(it, sz):
+    length = len(it)
+    for i in range(0, length, sz):
+        yield it[i:i+sz]
 
 
 with open("input.txt", "r") as f:
     instructions = f.read().splitlines()
+
+
+def get_pixels(cycle_count, x_val):
+    cycle_count_mod = cycle_count % 40
+    if cycle_count_mod >= x_val - 1 and cycle_count_mod <= x_val+1:
+        pixels = "#"
+    else:
+        pixels = "."
+    return pixels
 
 
 executions = []
@@ -17,15 +25,25 @@ target_counts = [20, 60, 100, 140, 180, 220]
 x_vals = []
 cycle_count = 0
 x_val = 1
+pixels = ""
 for ind, line in enumerate(instructions):
     add_val = None
+    xval_range = [x_val - 1, x_val, x_val+1]
+    # print("".join(["." if i not in xval_range else "#" for i in range(40)]))
+
     if line.startswith("noop"):
+        pixels += get_pixels(cycle_count, x_val)
         cycle_count += 1
         print("noop")
     elif line.startswith("addx"):
-        cycle_count += 2
+        pixels += get_pixels(cycle_count, x_val)
+        cycle_count += 1
+        pixels += get_pixels(cycle_count, x_val)
+        cycle_count += 1
         add_val = int(line.split(" ")[-1])
         print(f"addx {add_val}")
+
+    print(pixels)
 
     to_pop = []
     for i in target_counts:
@@ -50,4 +68,8 @@ for a, b in x_vals:
 signal_strength = sum([a*b for a, b in x_vals])
 
 print(f"part 1: {signal_strength}")
+
+
+for c in batch(pixels, 40):
+    print(c)
 
